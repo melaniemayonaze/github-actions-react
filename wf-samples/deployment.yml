@@ -1,5 +1,10 @@
 name: Deploy react app
-on: push
+on: 
+  push:
+    branches:
+      - main
+    # paths-ignore:
+    #   - '.github/workflows/*'
 
 jobs:
   test:
@@ -7,6 +12,11 @@ jobs:
     steps:
       - name: Get the repository code
         uses: actions/checkout@v7
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm install
       - name: Test application
@@ -14,21 +24,40 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: test
     steps:
       - name: Get the repository code
         uses: actions/checkout@v7
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm install
       - name: Lint application
         run: npm run lint
 
   build:
-    runs-on: ubuntu-latest
-    needs: lint
+    
+    needs: [lint, test]
+    continue-on-error: true
+    strategy:
+      matrix:
+        node-version: [14, 16]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Get the repository code
         uses: actions/checkout@v7
+      - name: Install Node js
+        uses: actions/setup-node@v3
+        with:
+            node-version: ${{ matrix.node-version }}
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm install
       - name: Build application
