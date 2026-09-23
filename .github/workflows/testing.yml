@@ -2,7 +2,7 @@ name: Test React App
 on: push
 
 jobs:
-  test_MILANI_MAYONAZE:
+  testMILANIMAYONAZE:
     runs-on: ubuntu-latest
     steps:
       - name: Get the repository code
